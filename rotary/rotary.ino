@@ -4,9 +4,13 @@
 #define outputB 7
 #define buttonPin 5
 
-Servo myservo;  // create servo object to control a 
+enum mode {
+  record,
+  challenge
+};
 
-int pos = 0;
+mode currentMode = record;
+
 class Button {
   private:
     bool _state;
@@ -33,15 +37,22 @@ class Button {
 };
 
 Button myButton(buttonPin);
+int sequence[3];
 bool isDoorOpen = false;
 
 int counter = 0;
 int aState;
 int aLastState;
+
+int currentIndex = 0;
+
+
+Servo myservo;  // create servo object to control a 
+
+int pos = 0;
 void setup() {
   pinMode (outputA, INPUT);
   pinMode (outputB, INPUT);
-  //   pinMode (buttonPin,INPUT);
   myButton.begin();
   myservo.attach(9);
 
@@ -50,14 +61,13 @@ void setup() {
   aLastState = digitalRead(outputA);
 }
 
-
-
 void openDoor(){
   for (pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
   }
+  isDoorOpen = true;
 }
 
 void closeDoor(){
@@ -65,6 +75,7 @@ void closeDoor(){
     myservo.write(pos);              // tell servo to go to position in variable 'pos'
     delay(15);                       // waits 15ms for the servo to reach the position
   }
+  isDoorOpen = false;
 }
 
 void readRotaryState(){
@@ -88,14 +99,47 @@ void loop() {
   readRotaryState();
 
   if (myButton.isReleased()) {
-    Serial.println(F("Released"));
-    if(!isDoorOpen){
-      openDoor();
-      isDoorOpen = true;
+
+    if(isDoorOpen){
+      closeDoor();
+      currentIndex = 0;
+      currentMode = challenge;
     }
     else{
-      closeDoor();
-      isDoorOpen = false;
-    }
+      
+      if(currentMode == record){
+        sequence[currentIndex] = counter;
+        currentIndex++;
+        for(int i = 0; i < 3; i++){
+          Serial.println(sequence[i]);
+        }
+        Serial.println("DONE");
+  
+        if(currentIndex == 3){
+          currentMode = challenge;
+          Serial.println("SWITCHING TO CHALLENGE MODE");
+          currentIndex = 0;
+        }
+      }
+      else{
+//       if( sequence[currentIndex] != counter){
+        Serial.println(sequence[currentIndex]);
+        Serial.println(counter);
+       if( abs(sequence[currentIndex] - counter) > 5 ){
+        currentIndex = 0;
+        Serial.println("INCORRECT");
+       }
+       else{
+        currentIndex++;
+        Serial.println("OK");
+        if(currentIndex == 3){
+          Serial.println("ALL RIGHT");
+          currentIndex = 0;
+          openDoor();
+        }
+     }
+  }
+}
+    
   }
 }
