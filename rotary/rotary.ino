@@ -1,9 +1,4 @@
-/*     Arduino Rotary Encoder Tutorial
- *      
- *  by Dejan Nedelkovski, www.HowToMechatronics.com
- *  
- */
- 
+
  #define outputA 6
  #define outputB 7
  #define buttonPin 5
@@ -63,10 +58,6 @@ Button myButton(buttonPin);
    } 
    aLastState = aState; // Updates the previous state of the outputA with the current state
 
-//   if(digitalRead(buttonPin)){
-//    
-//     Serial.println("button press");
-//   }
     if (myButton.isReleased()) {
         Serial.println(F("Released"));
     }
